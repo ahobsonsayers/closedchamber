@@ -120,7 +120,7 @@ jobs:
             -t "$DOCKER_IMAGE:latest" \
             -t "$DOCKER_IMAGE:$OPENCODE_VERSION" \
             -t "$DOCKER_IMAGE:openchamber-$OPENCODE_VERSION-opencode-$OPENCHAMBER_VERSION" \
-            "$(printf "$DOCKER_IMAGE@sha256:%s " *)"
+            $(printf "$DOCKER_IMAGE@sha256:%s " *)
         env:
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           OPENCODE_VERSION: ${{ needs.get-versions.outputs.opencode-version }}
