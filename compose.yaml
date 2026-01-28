@@ -1,0 +1,14 @@
+services:
+  openchamber:
+    container_name: openchamber
+    image: arranhs/openchamber
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/openchamber/persistence:/persistence
+      - ~/openchamber/workspace:/home/openchamber/workspace
+    environment:
+      - TZ=Europe/London
