@@ -37,8 +37,8 @@ jobs:
       - name: Extract versions
         id: extract-versions
         run: |
-          OPENCODE_VERSION=$(grep "^ARG opencode-version=" Dockerfile | cut -d '=' -f2)
-          OPENCHAMBER_VERSION=$(grep "^ARG openchamber-version=" Dockerfile  | cut -d '=' -f2)
+          OPENCODE_VERSION=$(grep "^ARG OPENCODE_VERSION=" Dockerfile | cut -d '=' -f2)
+          OPENCHAMBER_VERSION=$(grep "^ARG OPENCHAMBER_VERSION=" Dockerfile  | cut -d '=' -f2)
 
           echo "opencode=$OPENCODE_VERSION" >> $GITHUB_OUTPUT
           echo "openchamber=$OPENCHAMBER_VERSION" >> $GITHUB_OUTPUT
@@ -79,7 +79,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v6
         with:
-          name: digests-${{ matrix.platform-slug }}
+          name: digest-${{ matrix.platform-slug }}
           path: ${{ runner.temp }}/digests/*
           retention-days: 1
 
@@ -101,7 +101,7 @@ jobs:
       - name: Download digests
         uses: actions/download-artifact@v7
         with:
-          pattern: digests-*
+          pattern: digest-*
           path: ${{ runner.temp }}/digests
           merge-multiple: true
 
