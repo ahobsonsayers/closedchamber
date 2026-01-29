@@ -8,7 +8,9 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ~/openchamber/persistence:/persistence
-      - ~/openchamber/workspace:/home/openchamber/workspace
+      - ~/openchamber/workspace:/home/opencode/workspace # Code files
+      - ~/openchamber/.config/opencode:/home/opencode/.config/opencode # Opencode config
+      - ~/openchamber/.local/share/opencode:/home/opencode/.local/share/opencode # Opencode sessions
+      - ~/openchamber/.gitconfig:/home/opencode/.gitconfig # Git config
     environment:
       - TZ=Europe/London

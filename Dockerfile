@@ -3,7 +3,7 @@ FROM quay.io/toolbx/ubuntu-toolbox:latest
 ARG OPENCODE_VERSION=v1.1.36
 ARG OPENCHAMBER_VERSION=v1.5.8
 
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
 
 RUN apt-get update && \
     apt-get install -y \
@@ -33,32 +33,23 @@ RUN useradd opencode --uid 1000 --home-dir "$HOME" --create-home && \
 
 USER opencode
 
-WORKDIR "$HOME"
-
 # Install bun
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH=$HOME/.bun/bin:$PATH
 
 # Install opencode
-RUN curl -fsSL https://opencode.ai/install | bash -s -- --version "$OPENCODE_VERSION"
-ENV PATH=$HOME/.opencode/bin:$PATH
-RUN opencode --version
+RUN bun add -g opencode-ai@$OPENCODE_VERSION
 
 # Install openchamber
-RUN bun install -g "@openchamber/web@$OPENCHAMBER_VERSION"
+RUN bun add -g @openchamber/web@$OPENCHAMBER_VERSION
 
-# Create persistent data directory
-RUN sudo mkdir -p /data && \
-    sudo chown -R opencode:opencode /data && \
-    mkdir -p /data/opencode/config && \
-    mkdir -p /data/opencode/storage && \
-    echo '{}' > /data/opencode/auth.json && \
-    ln -sf /data/opencode/config "$HOME/.config/opencode" && \
-    ln -sf /data/opencode/storage "$HOME/.local/share/opencode/storage" && \
-    ln -sf /data/opencode/auth.json "$HOME/.local/share/opencode/auth.json"
+# Persistence
+VOLUME /home/opencode/.config/opencode # Persist opencode config
+VOLUME /home/opencode/.local/share/opencode # Persist opencode sessions
 
 WORKDIR "$HOME/workspace"
 
 EXPOSE 3000
 
 ENTRYPOINT ["openchamber", "--port", "3000"]
+
