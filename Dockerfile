@@ -44,6 +44,9 @@ RUN bun add -g opencode-ai@$OPENCODE_VERSION
 RUN bun add -g @openchamber/web@$OPENCHAMBER_VERSION
 
 # Persistence
+RUN mkdir -p /home/opencode/.config/opencode && \
+    mkdir -p /home/opencode/.local/share/opencode
+
 VOLUME /home/opencode/.config/opencode # Persist opencode config
 VOLUME /home/opencode/.local/share/opencode # Persist opencode sessions
 
