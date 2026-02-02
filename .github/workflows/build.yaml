@@ -1,9 +1,12 @@
 name: Build and Push Docker Image
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 6 * * *"
+  workflow_dispatch:
 
 env:
   DOCKER_IMAGE: arranhs/closedchamber
@@ -24,8 +27,8 @@ jobs:
       - name: Extract versions
         id: extract-versions
         run: |
-          OPENCODE_VERSION=$(grep "^ARG OPENCODE_VERSION=" Dockerfile | cut -d '=' -f2)
-          OPENCHAMBER_VERSION=$(grep "^ARG OPENCHAMBER_VERSION=" Dockerfile  | cut -d '=' -f2)
+          OPENCODE_VERSION=$(grep "^FROM arranhs/closedcode:" Dockerfile | cut -d ':' -f2)
+          OPENCHAMBER_VERSION=$(grep "^ARG OPENCHAMBER_VERSION=" Dockerfile | cut -d '=' -f2)
 
           echo "opencode=$OPENCODE_VERSION" >> $GITHUB_OUTPUT
           echo "openchamber=$OPENCHAMBER_VERSION" >> $GITHUB_OUTPUT

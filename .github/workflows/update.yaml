@@ -1,0 +1,99 @@
+name: Update Versions
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Update versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Get current versions
+        id: get-current-versions
+        run: |
+          OPENCODE_VERSION=$(grep "^FROM arranhs/closedcode:" Dockerfile | cut -d ':' -f2)
+          OPENCHAMBER_VERSION=$(grep "^ARG OPENCHAMBER_VERSION=" Dockerfile | cut -d '=' -f2)
+
+          echo "opencode=$OPENCODE_VERSION" >> $GITHUB_OUTPUT
+          echo "openchamber=$OPENCHAMBER_VERSION" >> $GITHUB_OUTPUT
+
+          echo "
+          Current OpenCode Version: $OPENCODE_VERSION
+          Current OpenChamber Version: $OPENCHAMBER_VERSION
+          "
+
+      - name: Get latest versions
+        id: get-latest-versions
+        run: |
+          OPENCODE_LATEST=$(
+            curl -s "https://hub.docker.com/v2/repositories/arranhs/closedcode/tags/?page_size=100" |
+            jq -r '.results[] | select(.name != "latest") | .name' |
+            sort -V |
+            tail -n 1
+          )
+
+          OPENCHAMBER_LATEST=$(npm view @openchamber/web version | tail -n 1)
+
+          echo "opencode=$OPENCODE_LATEST" >> $GITHUB_OUTPUT
+          echo "openchamber=$OPENCHAMBER_LATEST" >> $GITHUB_OUTPUT
+
+          echo "
+          Latest OpenCode Version: $OPENCODE_LATEST
+          Latest OpenChamber Version: $OPENCHAMBER_LATEST
+          "
+
+      - name: Compare and update versions
+        id: compare-update
+        run: |
+          NEEDS_UPDATE=false
+          COMMIT_MSG=""
+
+          if [ "$CURRENT_OPENCODE_VERSION" != "$LATEST_OPENCODE_VERSION" ]; then
+            NEEDS_UPDATE=true
+            COMMIT_MSG="update opencode base to $LATEST_OPENCODE_VERSION"
+          fi
+
+          if [ "$CURRENT_OPENCHAMBER_VERSION" != "$LATEST_OPENCHAMBER_VERSION" ]; then
+            NEEDS_UPDATE=true
+            if [ -n "$COMMIT_MSG" ]; then
+              COMMIT_MSG="$COMMIT_MSG, "
+            fi
+            COMMIT_MSG="$COMMIT_MSG update openchamber to $LATEST_OPENCHAMBER_VERSION"
+          fi
+
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+        env:
+          CURRENT_OPENCODE_VERSION: ${{ steps.get-current-versions.outputs.opencode }}
+          CURRENT_OPENCHAMBER_VERSION: ${{ steps.get-current-versions.outputs.openchamber }}
+          LATEST_OPENCODE_VERSION: ${{ steps.get-latest-versions.outputs.opencode }}
+          LATEST_OPENCHAMBER_VERSION: ${{ steps.get-latest-versions.outputs.openchamber }}
+
+      - name: Update Dockerfile
+        if: steps.compare-update.outputs.needs_update == 'true'
+        run: |
+          if [ "${{ steps.get-current-versions.outputs.opencode }}" != "${{ steps.get-latest-versions.outputs.opencode }}" ]; then
+            sed -i "s|^FROM arranhs/closedcode:.*|FROM arranhs/closedcode:${{ steps.get-latest-versions.outputs.opencode }}|" Dockerfile
+          fi
+
+          if [ "${{ steps.get-current-versions.outputs.openchamber }}" != "${{ steps.get-latest-versions.outputs.openchamber }}" ]; then
+            sed -i "s|^ARG OPENCHAMBER_VERSION=.*|ARG OPENCHAMBER_VERSION=${{ steps.get-latest-versions.outputs.openchamber }}|" Dockerfile
+          fi
+
+      - name: Commit and push
+        if: steps.compare-update.outputs.needs_update == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add Dockerfile
+          git commit -m "${{ steps.compare-update.outputs.commit_msg }}"
+          git push
