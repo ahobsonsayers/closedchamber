@@ -16,7 +16,7 @@ USER opencode
 # This contains a nasty hack to work around bun arbitrarily hanging on arm
 # bun install is attempted multiple times if the command doesnt complete in a certain time
 RUN for i in $(seq 1 5); do \
-    timeout 10s bun add --global @openchamber/web@$OPENCHAMBER_VERSION && exit 0; \
+    timeout 20s bun install --global @openchamber/web@$OPENCHAMBER_VERSION && exit 0; \
     done; exit 1
 
 ENTRYPOINT ["/entrypoint.sh", "bun", "run", "openchamber"]
