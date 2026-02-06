@@ -10,7 +10,7 @@ RUN apt-get update && \
     python3 && \
     rm -rf /var/lib/apt/lists/*
 
-USER opencode
+USER agent
 
 # Install openchamber
 # This contains a nasty hack to work around bun arbitrarily hanging on arm
