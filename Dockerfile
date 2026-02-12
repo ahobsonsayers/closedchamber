@@ -1,6 +1,6 @@
-FROM arranhs/closedcode:1.1.56
+FROM arranhs/closedcode:1.1.59
 
-ARG OPENCHAMBER_VERSION=1.6.7
+ARG OPENCHAMBER_VERSION=1.6.8
 
 USER root
 
