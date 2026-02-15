@@ -1,4 +1,4 @@
-FROM arranhs/closedcode:1.1.65
+FROM arranhs/closedcode:1.2.4
 
 ARG OPENCHAMBER_VERSION=1.6.8
 
